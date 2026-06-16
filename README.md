@@ -203,3 +203,4 @@ Components in `components/UIComponents.js`:
 - Location reverse-geocoding is rate-limited; failures fall back to coordinate display gracefully
 - EAS Build requires an Expo account for cloud builds
 
+# QuickJbApp
