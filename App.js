@@ -1,22 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ActivityIndicator,
-  Image, Animated,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  Animated,
 } from 'react-native';
+
+import Constants from 'expo-constants';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
-import { onAuthStateChanged } from 'firebase/auth';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onAuthStateChanged } from 'firebase/auth';
 
 import { auth } from './firebaseConfig';
+
 import {
   requestNotificationPermissions,
   getAndStorePushToken,
   setupNotificationListeners,
 } from './utils/notifications';
+
 import { PaperTheme, Colors, Typography } from './theme';
 
 import LoginScreen from './screens/Login';
@@ -33,14 +41,22 @@ import ChatScreen from './screens/Chat';
 
 const Stack = createStackNavigator();
 
-// ─── Splash / Loading Screen ──────────────────────────────────────────────────
 function SplashScreen() {
   const pulse = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.08, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, {
+          toValue: 1.08,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
       ])
     ).start();
   }, []);
@@ -48,32 +64,46 @@ function SplashScreen() {
   return (
     <LinearGradient colors={Colors.gradientPrimary} style={styles.splash}>
       <StatusBar style="light" />
-      <Animated.View style={[styles.splashLogoWrap, { transform: [{ scale: pulse }] }]}>
+
+      <Animated.View
+        style={[
+          styles.splashLogoWrap,
+          {
+            transform: [{ scale: pulse }],
+          },
+        ]}
+      >
         <Image
           source={require('./assets/logo1.png')}
           style={styles.splashLogo}
           resizeMode="contain"
         />
       </Animated.View>
+
       <Text style={styles.splashName}>Quick-Job</Text>
-      <Text style={styles.splashTagline}>Find work. Hire fast. Done.</Text>
+
+      <Text style={styles.splashTagline}>
+        Find work. Hire fast. Done.
+      </Text>
+
       <ActivityIndicator
         color="rgba(255,255,255,0.7)"
-        size="small"
-        style={{ marginTop: 40 }}
+        style={{ marginTop: 30 }}
       />
     </LinearGradient>
   );
 }
 
-// ─── Shared header logo ───────────────────────────────────────────────────────
 const HeaderLogo = () => (
   <View style={{ marginRight: 12 }}>
-    <Image source={require('./assets/logo1.png')} style={{ width: 36, height: 36 }} resizeMode="contain" />
+    <Image
+      source={require('./assets/logo1.png')}
+      style={{ width: 36, height: 36 }}
+      resizeMode="contain"
+    />
   </View>
 );
 
-// ─── Shared screen options ────────────────────────────────────────────────────
 const screenOptions = {
   headerStyle: {
     backgroundColor: Colors.primary,
@@ -86,120 +116,179 @@ const screenOptions = {
     fontSize: Typography.md,
   },
   headerRight: () => <HeaderLogo />,
-  cardStyle: { backgroundColor: Colors.background },
+  cardStyle: {
+    backgroundColor: Colors.background,
+  },
 };
 
-// ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigationRef = useRef(null);
 
-  // Auth state listener
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, currentUser => {
+      setUser(currentUser);
       setLoading(false);
     });
-    requestNotificationPermissions();
-    return unsub;
+
+    if (Constants.appOwnership !== 'expo') {
+      requestNotificationPermissions();
+    }
+
+    return unsubscribe;
   }, []);
 
-  // Push token when user logs in
   useEffect(() => {
-    if (user) getAndStorePushToken();
+    if (
+      user &&
+      Constants.appOwnership !== 'expo'
+    ) {
+      getAndStorePushToken();
+    }
   }, [user]);
 
-  // Notification deep-link handler
   useEffect(() => {
-    const handleNotification = (notification) => {
-      let jobId =
+    const handleNotification = notification => {
+      const jobId =
         notification?.jobId ||
-        notification?.request?.content?.data?.jobId ||
-        null;
-      if (jobId && navigationRef.current) {
-        navigationRef.current.navigate('JobDetails', { job: { id: jobId } });
-      }
+        notification?.request?.content?.data?.jobId;
+
+      if (!jobId) return;
+
+      navigationRef.current?.navigate(
+        'JobDetails',
+        {
+          job: {
+            id: jobId,
+          },
+        }
+      );
     };
-    const remove = setupNotificationListeners(handleNotification);
-    return remove;
+
+    if (Constants.appOwnership !== 'expo') {
+      const remove =
+        setupNotificationListeners(
+          handleNotification
+        );
+
+      return remove;
+    }
   }, []);
 
-  if (loading) return <SplashScreen />;
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <SafeAreaProvider>
       <PaperProvider theme={PaperTheme}>
-        <StatusBar style={user ? 'light' : 'light'} />
+        <StatusBar style="light" />
+
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
-            initialRouteName={user ? 'Home' : 'Login'}
             screenOptions={screenOptions}
           >
-            {/* ── Auth ── */}
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{ headerShown: false }}
-            />
+            {!user ? (
+              <>
+                <Stack.Screen
+                  name="Login"
+                  component={LoginScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
 
-            {/* ── App ── */}
-            <Stack.Screen
-              name="Home"
-              component={DashboardScreen}
-              options={{ title: 'Home', headerShown: false }}
-            />
-            <Stack.Screen
-              name="JobList"
-              component={JobListScreen}
-              options={{ title: 'Nearby Jobs', headerShown: false }}
-            />
-            <Stack.Screen
-              name="PostJob"
-              component={PostJobScreen}
-              options={{ title: 'Post a Job', headerShown: false }}
-            />
-            <Stack.Screen
-              name="JobDetails"
-              component={JobDetailsScreen}
-              options={({ route }) => ({
-                title: route.params?.job?.title || 'Job Details',
-                headerShown: true,
-              })}
-            />
-            <Stack.Screen
-              name="Search"
-              component={SearchScreen}
-              options={{ title: 'Search Jobs', headerShown: false }}
-            />
-            <Stack.Screen
-              name="Testimonial"
-              component={TestimonialScreen}
-              options={{ title: 'Leave a Review', headerShown: false }}
-            />
-            <Stack.Screen
-              name="AllTestimonials"
-              component={AllTestimonialsScreen}
-              options={{ title: 'All Reviews', headerShown: false }}
-            />
-            <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{ title: 'My Profile', headerShown: false }}
-            />
-            <Stack.Screen
-              name="Chat"
-              component={ChatScreen}
-              options={({ route }) => ({
-                title: route.params?.jobTitle || 'Chat',
-                headerShown: true,
-              })}
-            />
+                <Stack.Screen
+                  name="Signup"
+                  component={SignupScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Stack.Screen
+                  name="Home"
+                  component={DashboardScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="JobList"
+                  component={JobListScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="PostJob"
+                  component={PostJobScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="JobDetails"
+                  component={JobDetailsScreen}
+                  options={({ route }) => ({
+                    title:
+                      route.params?.job?.title ||
+                      'Job Details',
+                  })}
+                />
+
+                <Stack.Screen
+                  name="Search"
+                  component={SearchScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="Testimonial"
+                  component={TestimonialScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="AllTestimonials"
+                  component={
+                    AllTestimonialsScreen
+                  }
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="Profile"
+                  component={ProfileScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+
+                <Stack.Screen
+                  name="Chat"
+                  component={ChatScreen}
+                  options={({ route }) => ({
+                    title:
+                      route.params?.jobTitle ||
+                      'Chat',
+                  })}
+                />
+              </>
+            )}
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
@@ -210,28 +299,35 @@ export default function App() {
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
+
   splashLogoWrap: {
     width: 100,
     height: 100,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
+    backgroundColor:
+      'rgba(255,255,255,0.2)',
     justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
   },
-  splashLogo: { width: 70, height: 70 },
+
+  splashLogo: {
+    width: 70,
+    height: 70,
+  },
+
   splashName: {
     fontSize: 38,
     fontWeight: '800',
     color: Colors.white,
-    letterSpacing: -0.5,
   },
+
   splashTagline: {
+    marginTop: 6,
     fontSize: 15,
     color: 'rgba(255,255,255,0.75)',
-    marginTop: 6,
   },
 });

@@ -3,6 +3,7 @@
     "name": "Quick-Job",
     "slug": "Quick-Job",
     "version": "1.0.0",
+    "scheme": "quickjob",
     "orientation": "portrait",
     "icon": "./assets/logo1.png",
     "userInterfaceStyle": "light",
