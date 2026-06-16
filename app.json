@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Quick-Job",
+    "slug": "Quick-Job",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo1.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo2.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses location to find nearby jobs.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses location to find nearby jobs.",
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification"
+        ]
+      },
+      "bundleIdentifier": "com.mojjam07.QuickJob"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo2.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ],
+      "package": "com.mojjam07.QuickJob"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "googleAndroidClientId": "YOUR_ANDROID_CLIENT_ID_HERE",
+      "googleIosClientId": "YOUR_IOS_CLIENT_ID_HERE",
+      "googleExpoClientId": "YOUR_EXPO_CLIENT_ID_HERE",
+      "eas": {
+        "projectId": "ecd14820-5ce7-4cce-906f-e82e5d554150"
+      }
+    },
+    "owner": "mojjam07"
+  }
+}

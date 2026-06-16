@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidPayAmount(pay) {
+      return pay is number && pay > 0;
+    }
+
+    function isValidPhoneNumber(contact) {
+      return contact is string &&
+             (contact.matches('^\\+?[1-9]\\d{1,14}$') ||
+              contact.matches('^\\(\\d{3}\\)\\s\\d{3}-\\d{4}$') ||
+              contact.matches('^\\d{3}-\\d{3}-\\d{4}$') ||
+              contact.matches('^\\d{10}$'));
+    }
+
+    function canCreateJob() {
+      // Rate limiting cannot be enforced in Firestore security rules
+      // Consider implementing rate limiting in your application logic
+      return true;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+
+      allow create: if isAuthenticated() &&
+                       canCreateJob() &&
+                       isValidPayAmount(request.resource.data.pay) &&
+                       request.resource.data.title is string &&
+                       request.resource.data.title.size() > 0 &&
+                       request.resource.data.description is string &&
+                       request.resource.data.description.size() > 0 &&
+                       request.resource.data.jobType is string &&
+                       request.resource.data.jobType.size() > 0 &&
+                       (!request.resource.data.contact ||
+                        request.resource.data.contact is string);
+
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.postedBy) ||
+        (request.auth.uid == resource.data.assignedUser && (
+          (resource.data.status == 'taken' && request.resource.data.status == 'completed') ||
+          (resource.data.status == 'completed' && request.resource.data.status == 'completed')
+        )) ||
+        (resource.data.status == 'available' && request.resource.data.status == 'taken')
+      );
+
+      allow delete: if isOwner(resource.data.postedBy);
+    }
+
+    match /chats {
+      allow list: if isAuthenticated();
+      allow read: if isAuthenticated();
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && request.auth.uid in chatId.split('_');
+    }
+
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if isAuthenticated() && request.auth.uid in chatId.split('_');
+
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.senderId &&
+                       request.resource.data.text is string &&
+                       request.resource.data.text.size() > 0 &&
+                       request.resource.data.text.size() <= 500 &&
+                       request.resource.data.senderEmail == request.auth.token.email;
+
+      allow update, delete: if false; // Messages cannot be edited or deleted
+    }
+  }
+}
