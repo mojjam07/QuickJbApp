@@ -9,7 +9,7 @@ import { collection, query, where, onSnapshot, getDocs, orderBy, limit } from 'f
 import { sendEmailVerification } from 'firebase/auth';
 import { db, auth } from '../firebaseConfig';
 import { useFocusEffect } from '@react-navigation/native';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 import { StarRating, GradientButton, OutlineButton, SkeletonLine } from '../components/UIComponents';
 
 const StatPill = ({ icon, label, value }) => (

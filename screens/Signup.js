@@ -10,7 +10,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { auth } from '../firebaseConfig';
 import { validateSignup } from '../utils/validation';
 import { useGoogleSignIn } from '../utils/googleAuth';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 
 export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState('');

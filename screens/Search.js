@@ -9,7 +9,7 @@ import * as Location from 'expo-location';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { reverseGeocodeWithTimeout, getCurrentPositionAsync } from '../utils/geocoding';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 import { JobCardSkeleton, StatusBadge, EmptyState } from '../components/UIComponents';
 
 const STATUS_FILTERS = ['all', 'available', 'taken', 'completed'];

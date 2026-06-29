@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { collection, onSnapshot, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 import { SkeletonLine, StatusBadge, StarRating } from '../components/UIComponents';
 
 const { width } = Dimensions.get('window');

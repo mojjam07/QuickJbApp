@@ -25,7 +25,7 @@ import {
   setupNotificationListeners,
 } from './utils/notifications';
 
-import { PaperTheme, Colors, Typography } from './theme';
+import { PaperTheme, Colors, Typography } from './src/shared/theme';
 
 import LoginScreen from './screens/Login';
 import SignupScreen from './screens/Signup';

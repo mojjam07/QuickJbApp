@@ -9,7 +9,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/fi
 import { db, auth } from '../firebaseConfig';
 import { decryptContact } from '../utils/encryption';
 import { sendJobNotification, NotificationTypes } from '../utils/notifications';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 import { StatusBadge, StarRating, GradientButton, OutlineButton } from '../components/UIComponents';
 
 const InfoRow = ({ icon, label, value }) => (

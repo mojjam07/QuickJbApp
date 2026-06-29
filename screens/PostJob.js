@@ -11,7 +11,7 @@ import { db, auth } from '../firebaseConfig';
 import { validateJobPost } from '../utils/validation';
 import { encryptContact } from '../utils/encryption';
 import { getCurrentPositionAsync, openLocationSettings } from '../utils/geocoding';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
 
 const PAY_FREQUENCIES = ['hourly', 'daily', 'weekly', 'monthly'];
 const JOB_TYPES = ['Cleaner', 'Babysitter', 'Driver', 'Gardener', 'Plumber', 'Cook', 'Security', 'Labourer', 'Tutor', 'Other'];
