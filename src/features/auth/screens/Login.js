@@ -6,11 +6,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import { validateLogin } from '../utils/validation';
+// import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+// import { auth } from '../../../../firebaseConfig';
+import {
+  login,
+  resetPassword,
+} from '../services/authService';
+import { validateLogin } from '../../../shared/utils/validation';
 import { useGoogleSignIn } from '../utils/googleAuth';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../../../shared/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -54,36 +58,43 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      const msg = error.code === 'auth/user-not-found' ? 'No account found with this email.'
-        : error.code === 'auth/wrong-password' ? 'Incorrect password. Please try again.'
-        : error.code === 'auth/too-many-requests' ? 'Too many attempts. Please try again later.'
-        : 'Login failed. Please check your credentials.';
-      Alert.alert('Login Failed', msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!validate()) return;
+
+  setLoading(true);
+
+  const result = await login(email, password);
+
+  setLoading(false);
+
+  if (!result.success) {
+    Alert.alert('Login Failed', result.message);
+  }
+};
 
   const handlePasswordReset = async () => {
-    if (!email) {
-      Alert.alert('Reset Password', 'Please enter your email address first.');
-      return;
-    }
-    setResetLoading(true);
-    try {
-      await sendPasswordResetEmail(auth, email);
-      Alert.alert('Email Sent', 'Check your inbox for a password reset link.');
-    } catch (error) {
-      Alert.alert('Error', 'Could not send reset email. Please check the address.');
-    } finally {
-      setResetLoading(false);
-    }
-  };
+  if (!email) {
+    Alert.alert(
+      'Reset Password',
+      'Please enter your email address first.'
+    );
+    return;
+  }
+
+  setResetLoading(true);
+
+  const result = await resetPassword(email);
+
+  setResetLoading(false);
+
+  if (result.success) {
+    Alert.alert(
+      'Email Sent',
+      'Check your inbox for a password reset link.'
+    );
+  } else {
+    Alert.alert('Error', result.message);
+  }
+};
 
   return (
     <SafeAreaView style={s.safe}>
@@ -96,7 +107,7 @@ export default function LoginScreen({ navigation }) {
           {/* Hero */}
           <LinearGradient colors={Colors.gradientPrimary} style={s.hero}>
             <View style={s.logoWrap}>
-              <Image source={require('../assets/logo1.png')} style={s.logo} resizeMode="contain" />
+              <Image source={require('../../../../assets/logo1.png')} style={s.logo} resizeMode="contain" />
             </View>
             <Text style={s.appName}>Quick-Job</Text>
             <Text style={s.tagline}>Find work. Hire fast. Done.</Text>

@@ -15,9 +15,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onAuthStateChanged } from 'firebase/auth';
+import useAuthState from './src/features/auth/hooks/useAuthState';
 
-import { auth } from './firebaseConfig';
 
 import {
   requestNotificationPermissions,
@@ -27,8 +26,8 @@ import {
 
 import { PaperTheme, Colors, Typography } from './src/shared/theme';
 
-import LoginScreen from './screens/Login';
-import SignupScreen from './screens/Signup';
+import LoginScreen from './src/features/auth/screens/Login';
+import SignupScreen from './src/features/auth/screens/Signup';
 import DashboardScreen from './screens/Dashboard';
 import JobListScreen from './screens/JobList';
 import PostJobScreen from './screens/PostJob';
@@ -124,21 +123,14 @@ const screenOptions = {
 export default function App() {
   const navigationRef = useRef(null);
 
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuthState();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, currentUser => {
-      setUser(currentUser);
-      setLoading(false);
-    });
+  if (Constants.appOwnership !== 'expo') {
+    requestNotificationPermissions();
+  }
+}, []);
 
-    if (Constants.appOwnership !== 'expo') {
-      requestNotificationPermissions();
-    }
-
-    return unsubscribe;
-  }, []);
 
   useEffect(() => {
     if (

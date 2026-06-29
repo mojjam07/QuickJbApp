@@ -6,11 +6,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import { validateSignup } from '../utils/validation';
+import { signup } from '../services/authService';
+import { validateSignup } from '../../../shared/utils/validation';
 import { useGoogleSignIn } from '../utils/googleAuth';
-import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
+import { Colors, Typography, Spacing, Radius, Shadows } from '../../../shared/theme';
 
 export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -53,27 +52,29 @@ export default function SignupScreen({ navigation }) {
   };
 
   const handleSignup = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(cred.user);
-      Alert.alert(
-        'Account Created! 🎉',
-        'Please verify your email before signing in. Check your inbox.',
-        [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }]
-      );
-    } catch (error) {
-      const msg = error.code === 'auth/email-already-in-use'
-        ? 'An account with this email already exists.'
-        : error.code === 'auth/weak-password'
-        ? 'Password is too weak. Use at least 8 characters.'
-        : 'Sign up failed. Please try again.';
-      Alert.alert('Sign Up Failed', msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!validate()) return;
+
+  setLoading(true);
+
+  const result = await signup(email, password);
+
+  setLoading(false);
+
+  if (result.success) {
+    Alert.alert(
+      'Account Created! 🎉',
+      'Please verify your email before signing in. Check your inbox.',
+      [
+        {
+          text: 'Go to Login',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]
+    );
+  } else {
+    Alert.alert('Sign Up Failed', result.message);
+  }
+};
 
   const Field = ({ label, icon, value, onChange, secure, showToggle, onToggle, keyboard, placeholder, errKey }) => (
     <View style={s.fieldWrap}>
@@ -111,7 +112,7 @@ export default function SignupScreen({ navigation }) {
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <LinearGradient colors={Colors.gradientPrimary} style={s.hero}>
             <View style={s.logoWrap}>
-              <Image source={require('../assets/logo1.png')} style={s.logo} resizeMode="contain" />
+              <Image source={require('../../../../assets/logo1.png')} style={s.logo} resizeMode="contain" />
             </View>
             <Text style={s.appName}>Join Quick-Job</Text>
             <Text style={s.tagline}>Start earning or hiring today</Text>

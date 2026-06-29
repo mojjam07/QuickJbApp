@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
-import { validateJobPost } from '../utils/validation';
+import { validateJobPost } from '../src/shared/utils/validation';
 import { encryptContact } from '../utils/encryption';
 import { getCurrentPositionAsync, openLocationSettings } from '../utils/geocoding';
 import { Colors, Typography, Spacing, Radius, Shadows } from '../src/shared/theme';
